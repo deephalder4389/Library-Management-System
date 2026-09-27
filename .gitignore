@@ -1,0 +1,43 @@
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Database
+db.sqlite3
+*.sqlite3
+
+# Uploaded Files
+media/
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Local settings
+settings_local.py
+local_settings.py
+
+# VS Code
+.vscode/
+
+# Backup Files
+backups/
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+
+# Old HTML backup
+index_old.html

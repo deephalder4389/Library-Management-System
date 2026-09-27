@@ -1,0 +1,95 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block main_content %}
+<div class="container-fluid px-3 px-lg-4 py-4" style="max-width: 1400px;">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row g-4">
+        <section class="col-12 col-lg-8" aria-label="Books in your bag">
+            <h4 class="text-center mb-4">Books in your bag - {{ bag_count }}</h4>
+            {% for item in bag_books %}
+                <div class="row align-items-center border-bottom py-3 g-3">
+                    <div class="col-3 col-sm-2 text-center">
+                        {% if item.cover_image %}
+                            <img src="{{ item.cover_image.url }}" alt="Cover of {{ item.title }}"
+                                 style="max-width:100%; max-height:105px; object-fit:contain;">
+                        {% else %}
+                            <div class="border bg-light text-muted rounded d-inline-flex align-items-center justify-content-center"
+                                 style="width:60px;height:85px;">No cover</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-6 col-sm-8 text-center">
+                        <div class="fw-semibold">{{ item.title }}</div>
+                        <div class="small">Written by {{ item.author }}</div>
+                        {% if item.publisher %}<div class="small text-muted">Published by {{ item.publisher }}{% if item.publication_year %}, {{ item.publication_year }}{% endif %}</div>{% endif %}
+                        {% if item.pk in issued_book_ids %}
+                            <div class="small text-danger mt-1">This book is already issued. Remove it before checkout.</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-3 col-sm-2 text-center">
+                        <form method="post" action="{% url 'remove_from_bag' item.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                        </form>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="alert alert-light border text-center">
+                    Your bag is empty. <a href="{% url 'books' %}">Browse books and add some to your bag.</a>
+                </div>
+            {% endfor %}
+            <p class="small text-muted mt-3">You can select up to {{ max_books }} books. Removing one from your bag does not delete it from the catalogue.</p>
+        </section>
+
+        <section class="col-12 col-lg-4" aria-label="Reader checkout">
+            <h4 class="text-center mb-4">Ready for Checkout?</h4>
+            <div class="p-3" style="background:#d4f8fa; min-height: 415px;">
+                <form method="get" action="{% url 'my_bag' %}" class="d-flex gap-2 align-items-center mb-3">
+                    <label for="readerId" class="form-label mb-0 flex-shrink-0">Reader ID:</label>
+                    <input id="readerId" type="number" min="1" step="1" name="reader_id" value="{{ lookup_id }}"
+                           class="form-control" placeholder="Enter ID" required>
+                    <button type="submit" class="btn btn-primary">Go</button>
+                </form>
+                {% if lookup_error %}<div class="alert alert-warning py-2 small">{{ lookup_error }}</div>{% endif %}
+
+                <table class="table table-sm table-bordered bg-white align-middle mb-3">
+                    <tbody>
+                        <tr><th scope="row" class="fw-normal" style="width:40%">Name:</th><td>{{ chosen_reader.reader_name|default:'—' }}</td></tr>
+                        <tr><th scope="row" class="fw-normal">Contact:</th><td>{{ chosen_reader.reader_contact|default:'—' }}</td></tr>
+                        <tr><th scope="row" class="fw-normal">Reference ID:</th><td>{{ chosen_reader.reference_id|default:'—' }}</td></tr>
+                        <tr><th scope="row" class="fw-normal">Start date &amp; time:</th><td>{{ checkout_start|date:'d M Y, h:i A' }}</td></tr>
+                    </tbody>
+                </table>
+
+                <form method="post" action="{% url 'checkout_bag' %}">
+                    {% csrf_token %}
+                    {% if chosen_reader and chosen_reader.active %}
+                        <input type="hidden" name="reader_id" value="{{ chosen_reader.pk }}">
+                    {% endif %}
+                    <label for="dueAt" class="form-label">Return due date &amp; time:</label>
+                    <input type="datetime-local" id="dueAt" name="due_at" class="form-control mb-3"
+                           min="{{ min_due }}" max="{{ max_due }}" required>
+                    <button type="submit" class="btn btn-primary w-100"
+                            {% if not chosen_reader or not chosen_reader.active or not bag_count %}disabled{% endif %}>
+                        Checkout {{ bag_count }} book{{ bag_count|pluralize }}
+                    </button>
+                </form>
+                <ul class="small mt-3 mb-0 ps-3">
+                    <li>Books must be handled carefully and returned undamaged.</li>
+                    <li>Only active readers can check out books.</li>
+                    <li>A reader can have at most four unreturned books.</li>
+                    <li>The due date must be within 14 days of checkout.</li>
+                </ul>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

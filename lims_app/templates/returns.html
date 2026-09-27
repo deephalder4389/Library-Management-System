@@ -1,0 +1,138 @@
+{% extends 'index.html' %}
+
+{% block main_content %}
+<div class="container-fluid px-3 px-lg-4 py-4" style="max-width: 1450px;">
+    <h4 class="text-center mb-4">Search readers</h4>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="get" action="{% url 'returns' %}" class="d-flex flex-wrap justify-content-center gap-2 mb-3">
+        <input type="hidden" name="status" value="{{ status }}">
+        <input type="search" name="q" value="{{ query }}" class="form-control"
+               style="max-width: 360px;" placeholder="Reader ID, name, contact or book"
+               aria-label="Search reader or book">
+        <button type="submit" class="btn btn-outline-primary">Search</button>
+        {% if query %}
+            <a class="btn btn-outline-secondary" href="{% url 'returns' %}?status={{ status }}">Clear</a>
+        {% endif %}
+    </form>
+
+    <div class="d-flex flex-wrap justify-content-center gap-2 mb-3" role="group" aria-label="Rental status">
+        <a href="{% url 'returns' %}?status=pending{% if query %}&amp;q={{ query|urlencode }}{% endif %}"
+           class="btn {% if status == 'pending' %}btn-primary{% else %}btn-outline-primary{% endif %}">Pending Returns</a>
+        <a href="{% url 'returns' %}?status=returned{% if query %}&amp;q={{ query|urlencode }}{% endif %}"
+           class="btn {% if status == 'returned' %}btn-primary{% else %}btn-outline-primary{% endif %}">Returned History</a>
+    </div>
+    <p class="text-center text-muted mb-4">{{ rental_count }} {% if status == 'pending' %}unreturned rental{% else %}completed return{% endif %}{{ rental_count|pluralize }} found.</p>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle text-center">
+            <thead>
+                <tr>
+                    <th scope="col">Reader ID</th>
+                    <th scope="col">Name / Contact</th>
+                    <th scope="col">Book</th>
+                    <th scope="col">Rental date</th>
+                    <th scope="col">Expected return date</th>
+                    <th scope="col">{% if status == 'pending' %}Action{% else %}Returned on{% endif %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in loans %}
+                    <tr>
+                        <td>{{ loan.reader_id_snapshot }}</td>
+                        <td>
+                            <div>{{ loan.reader_name_snapshot }}</div>
+                            {% if loan.reader %}
+                                <div class="small text-muted">{{ loan.reader.reader_contact }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="fw-semibold">{{ loan.book_title_snapshot }}</div>
+                            {% if loan.book %}
+                                <div class="small">Written by {{ loan.book.author }}</div>
+                                {% if loan.book.publisher %}
+                                    <div class="small text-muted">Published by {{ loan.book.publisher }}{% if loan.book.publication_year %}, {{ loan.book.publication_year }}{% endif %}</div>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>{{ loan.checkout_at|date:'d M Y, h:i A' }}</td>
+                        <td>
+                            {{ loan.due_at|date:'d M Y, h:i A' }}
+                            {% if status == 'pending' and loan.due_at < now %}
+                                <div><span class="badge text-bg-warning">Overdue</span></div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if status == 'pending' %}
+                                <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal"
+                                        data-bs-target="#returnLoan{{ loan.pk }}">Return</button>
+                            {% else %}
+                                <span class="badge text-bg-success">Returned</span>
+                                <div class="small mt-1">{{ loan.returned_at|date:'d M Y, h:i A' }}</div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="py-4 text-muted">
+                        {% if query %}No rentals match your search.
+                        {% elif status == 'returned' %}No books have been returned yet.
+                        {% else %}No books are awaiting return. Issue books from My Bag to see them here.{% endif %}
+                    </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if loans.paginator.num_pages > 1 %}
+        <nav aria-label="Rental pages">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if not loans.has_previous %}disabled{% endif %}">
+                    {% if loans.has_previous %}<a class="page-link" href="?status={{ status }}&amp;q={{ query|urlencode }}&amp;page={{ loans.previous_page_number }}">Previous</a>
+                    {% else %}<span class="page-link">Previous</span>{% endif %}
+                </li>
+                <li class="page-item disabled"><span class="page-link">{{ loans.number }} / {{ loans.paginator.num_pages }}</span></li>
+                <li class="page-item {% if not loans.has_next %}disabled{% endif %}">
+                    {% if loans.has_next %}<a class="page-link" href="?status={{ status }}&amp;q={{ query|urlencode }}&amp;page={{ loans.next_page_number }}">Next</a>
+                    {% else %}<span class="page-link">Next</span>{% endif %}
+                </li>
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+
+{% if status == 'pending' %}
+    {% for loan in loans %}
+        <div class="modal fade" id="returnLoan{{ loan.pk }}" tabindex="-1"
+             aria-labelledby="returnTitle{{ loan.pk }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="returnTitle{{ loan.pk }}">Confirm book return</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Mark <strong>{{ loan.book_title_snapshot }}</strong> (issued to
+                        <strong>{{ loan.reader_name_snapshot }}</strong>, ID {{ loan.reader_id_snapshot }}) as returned?
+                        The book will become available for checkout again.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form method="post" action="{% url 'return_loan' loan.pk %}" class="m-0">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary">Yes, Return</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+{% endblock %}

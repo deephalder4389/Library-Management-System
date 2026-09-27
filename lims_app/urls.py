@@ -1,0 +1,47 @@
+"""URL configuration for the Library Management System."""
+
+from django.urls import path
+from .views import (
+    home,
+    readers,
+    shop,
+    save_student,
+    save_reader,
+    update_reader,
+    deactivate_reader,
+    activate_reader,
+    delete_reader,
+    books,
+    upload_book,
+    delete_book,
+    my_bag,
+    add_to_bag,
+    remove_from_bag,
+    checkout_bag,
+    returns_page,
+    return_loan,
+)
+
+urlpatterns = [
+    path('', home, name='home_root'),
+    path('home', home, name='home'),
+    path('readers', readers, name='readers'),
+    path('shop', shop, name='shop'),
+    path('save', save_student, name='save_student'),
+    path('readers/add', save_reader, name='save_reader'),
+    path('readers/update/<int:reader_id>/', update_reader, name='update_reader'),
+    path('readers/deactivate/<int:reader_id>/', deactivate_reader, name='deactivate_reader'),
+    path('readers/activate/<int:reader_id>/', activate_reader, name='activate_reader'),
+    path('readers/delete/<int:reader_id>/', delete_reader, name='delete_reader'),
+    path('books', books, name='books'),
+    path('books/upload/', upload_book, name='upload_book'),
+    path('books/delete/<int:book_id>/', delete_book, name='delete_book'),
+    path('books/add-to-bag/<int:book_id>/', add_to_bag, name='add_to_bag'),
+    path('mybag', my_bag, name='my_bag'),
+    path('bag', my_bag, name='bag'),
+    path('bag/remove/<int:book_id>/', remove_from_bag, name='remove_from_bag'),
+    path('bag/checkout/', checkout_bag, name='checkout_bag'),
+    path('rental', returns_page, name='rental'),
+    path('returns', returns_page, name='returns'),
+    path('rental/return/<int:loan_id>/', return_loan, name='return_loan'),
+]

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+{% extends "index.html" %}
+{% load static %}
+
+{% block main_content %}
+<main role="main">
+<div class="jumbotron">
+    <div class="container">
+        <img src="{% static '/lms_logo_big.jpg' %}"class="rounded float-start" alt="lms" height="200" style="margin-right: 20px;">
+        <h1 class="display-4">Hello, Readers!</h1>
+        <p>Welcome to city library, We have large collection of books foe all kind of readers.</p>
+        <p>
+          <a href="/books" class="btn btn-primary btn-lg">
+              Browse our collection &gt;&gt;
+          </a>
+          </button></a></p>
+    </div>
+
+</div>
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h2>Why reading is important?</h2>
+        <p>Reading is important because it helps us learn, think, and communicate more effectively. It introduces us to new ideas, information, cultures, and perspectives while improving vocabulary, grammar, and writing skills.Regular reading can also strengthen concentration, comprehension, imagination, and critical thinking. Whether we read books, articles, or stories, reading helps us understand the world better and supports success in school, work, and everyday life.</p>
+    </div>
+    <div class="col">
+      <h2>Key Benifits</h2>
+        <ul>
+            <li>📚 Improves Knowledge</li>
+            <li>🗣️ Increases Vocabulary</li>
+            <li>🎯 Improves Concentration</li>
+            <li>🧠 Develops Critical Thinking</li>
+            <li>💡 Boosts Creativity</li>
+        </ul>
+    </div>
+    <div class="col">
+      <h2>Thoughts of the day!</h2>
+        <p>Success does not come overnight; it is the result of consistent effort and patience. Every small step you take today brings you closer to your goals. Believe in yourself, learn from your mistakes, and never give up. Keep moving forward with confidence and a positive attitude.</p>
+    </div>
+  </div>
+</div>
+
+<div>
+    <hr>
+</div>
+    </main>
+<footer>
+    <p>©city library2025</p>
+</footer>
+{% endblock %}
