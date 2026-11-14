@@ -38,37 +38,6 @@ through a user-friendly interface.
 - Manage books, readers, and loan records
 - SQLite database integration
 
-## Installation
-
-1. Clone the repository.
-
-2. Create a virtual environment:
-
-   python -m venv .venv
-
-3. Activate the virtual environment (Windows):
-
-   .venv\Scripts\activate
-
-4. Install dependencies:
-
-   pip install -r requirements.txt
-
-5. Configure the DJANGO_SECRET_KEY environment variable
-   with your own generated secret key.
-
-6. Apply database migrations:
-
-   python manage.py migrate
-
-7. Start the development server:
-
-   python manage.py runserver
-
-8. Open the application in your browser:
-
-   http://127.0.0.1:8000/
-
 ## Database
 
 The application uses SQLite to maintain reader information,
